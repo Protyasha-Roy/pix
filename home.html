@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+    <title>Home</title>
+</head>
+<body class="p-2">
+    <header class="text-center">
+        <div>
+            <h1 class="text-red-400 text-5xl">Pix</h1>
+            <p class="text-gray-400">Its a short hand web app to create pixel art. You can download <span class="text-blue-400">PNG</span> of the art you create</p>
+        </div>
+
+        <nav class="w-96 m-auto flex justify-around text-blue-700 underline hover:text-blue-800">
+            <a href="index.html">Sign In</a>
+            <a href="instructions.html">Instructions</a>
+        </nav>
+    </header>
+
+    <main class="mt-7">
+        <section>
+            <div class="flex flex-col w-8/12 m-auto">
+                <input id="artNameInput" class="border p-2 rounded" type="text" placeholder="enter art name">
+                <button id="newArtBtn" class="bg-green-500 p-2 mt-2 rounded text-white text-xl hover:bg-green-600">New art +</button>
+            </div>
+        </section>
+
+        <section class="m-5 p-2">
+            <div>
+                <h2 class="text-gray-700 text-3xl">Your Art Porjects</h2>
+                <div class="p-3">
+                    <p>proect-1</p>
+                    <p>proect-1</p>
+                    <p>proect-1</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const NewArtBtn = document.getElementById('newArtBtn');
+    const artNameInput = document.getElementById('artNameInput');
+
+    NewArtBtn.addEventListener('click', async () => {
+        const userId = localStorage.getItem('userId');
+        const artName = artNameInput.value;
+
+        // Create or update the project on the server
+        const response = await fetch('http://localhost:10000/createNewArt', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ userId, artName, content: null }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            // Redirect to the playground page with the selected project ID
+            window.location.href = `/playground.html?projectId=${data.projectId}`;
+        } else {
+            console.error('Error creating or updating project:', data.message);
+        }
+    });
+    </script>
+</body>
+</html>

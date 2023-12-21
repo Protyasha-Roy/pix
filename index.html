@@ -59,7 +59,7 @@
           if (response.ok) {
             // Save user ID to localStorage
             localStorage.setItem('userId', data.userId);
-            window.location.href = '/playground.html';
+            window.location.href = '/home.html';
           } else {
             document.getElementById('signInMessage').innerText = `Error: ${data.message}`;
           }
