@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+  <title>Pixel Art App</title>
+  <style>
+    .input-field {
+  width: 100%;
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.btn {
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.25rem;
+}
+
+.btn-primary {
+  background-color: #3490dc;
+  color: white;
+}
+
+  </style>
+</head>
+<body class="bg-gray-100 h-screen flex items-center justify-center">
+  <div id="auth-container" class="p-8 bg-white rounded-md shadow-md">
+    <h1 class="text-2xl font-semibold mb-4 text-gray-400 text-center">Pix Authentication</h1>
+    <div id="auth-form" class="mb-4">
+      <h2 class="text-lg font-medium mb-2" id="form-title">Sign Up</h2>
+      <input type="email" id="email" placeholder="Email" class="input-field">
+      <input type="password" id="password" placeholder="Password" class="input-field">
+      <div class="flex justify-between">
+        <button onclick="signUp()" class="btn btn-primary hover:bg-blue-400">Sign Up</button>
+        <button>Already have an account? <span onclick="toggleAuth()" class="text-blue-500">Sign In</span></button>
+      </div>
+      <p id="warning" class="text-red-500 mt-2 text-center"></p>
+    </div>
+  </div>
+
+  <script>
+    let isSignUp = true;
+
+function toggleAuth() {
+  isSignUp = !isSignUp;
+  const formTitle = document.getElementById('form-title');
+  const submitButton = document.querySelector('#auth-form button');
+  const toggleButton = document.querySelector('#auth-form button.text-blue-500');
+
+  if (isSignUp) {
+    formTitle.innerText = 'Sign Up';
+    submitButton.innerText = 'Sign Up';
+    toggleButton.innerText = 'Already have an account? Sign In';
+  } else {
+    formTitle.innerText = 'Sign In';
+    submitButton.innerText = 'Sign In';
+    toggleButton.innerText = "Don't have an account? Sign Up";
+  }
+
+  clearWarning(); // Clear any existing warnings
+}
+
+function clearWarning() {
+  document.getElementById('warning').innerText = '';
+}
+
+function signUp() {
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+
+  // Basic form validation
+  if (!email || !password) {
+    document.getElementById('warning').innerText = 'Please fill in all fields.';
+    return;
+  }
+
+  // Email validation using a simple regular expression
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    document.getElementById('warning').innerText = 'Invalid email address.';
+    return;
+  }
+
+  // Perform sign-up logic (not implemented in this example)
+  console.log('Signing up:', email);
+  clearWarning(); // Clear any existing warnings
+}
+
+// Other functions remain unchanged
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Art Creator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+
+        #controls {
+            margin-bottom: 20px;
+        }
+
+        #pixelGrid {
+            display: inline-grid;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgb(218, 216, 216);
+        }
+
+        .pixel {
+            width: 5px;
+            height: 5px;
+            cursor: pointer;
+            border: none;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .pixel:nth-child(odd) {
+            background-color: #eee;
+        }
+
+        .pixel:nth-child(even) {
+            background-color: #fff;
+        }
+
+        #controls button.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+    </style>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+</head>
+<body>
+    <div id="controls">
+        <input type="color" id="colorPicker" value="#000000">
+        <label for="width">Width:</label>
+        <input type="number" id="width" value="141">
+        <label for="height">Height:</label>
+        <input type="number" id="height" value="83">
+        <button onclick="createGrid()">Create Grid</button>
+        <button onclick="setEraserMode()">Eraser</button>
+        <button onclick="downloadPixelArt('png')">Download Pixel Art (PNG)</button>
+    </div>
+    <div id="pixelGrid"></div>
+
+    <script>
+        let isMouseDown = false;
+        let isEraserMode = false;
+
+        function createGrid() {
+            const width = document.getElementById('width').value;
+            const height = document.getElementById('height').value;
+            const pixelGrid = document.getElementById('pixelGrid');
+            pixelGrid.innerHTML = ''; // Clear previous grid
+
+            for (let i = 0; i < width * height; i++) {
+                const pixel = document.createElement('div');
+                pixel.classList.add('pixel');
+                pixel.addEventListener('mousedown', handleMouseDown);
+                pixel.addEventListener('mouseover', handleMouseOver);
+                pixelGrid.appendChild(pixel);
+            }
+
+            pixelGrid.style.gridTemplateColumns = `repeat(${width}, 5px)`;
+            pixelGrid.style.gridTemplateRows = `repeat(${height}, 5px)`;
+        }
+
+        function handleMouseDown(event) {
+            isMouseDown = true;
+            handleMouseOver(event);
+        }
+
+        function handleMouseOver(event) {
+            if (isMouseDown) {
+                const color = isEraserMode ? '' : document.getElementById('colorPicker').value;
+                event.target.style.backgroundColor = color;
+            }
+        }
+
+        function handleMouseUp() {
+            isMouseDown = false;
+        }
+
+        function setEraserMode() {
+            isEraserMode = !isEraserMode;
+
+            // Toggle the 'active' class to highlight the active mode
+            const eraserButton = document.querySelector('#controls button');
+            eraserButton.classList.toggle('active', isEraserMode);
+        }
+
+        function downloadPixelArt(format) {
+    const pixelGrid = document.getElementById('pixelGrid');
+    if (format === 'png') {
+        // Use html2canvas to capture the content of the pixel grid
+        html2canvas(pixelGrid, {
+            backgroundColor: null,
+            scale: 2, // Adjust scale for higher resolution
+        }).then(canvas => {
+            // Convert the canvas content to a data URL
+            const dataURL = canvas.toDataURL('image/png');
+
+            // Create a download link for the user to download the PNG file
+            const downloadLink = document.createElement('a');
+            downloadLink.href = dataURL;
+            downloadLink.download = 'pixel_art.png';
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+        });
+    }
+}
+
+        document.addEventListener('mouseup', handleMouseUp);
+    </script>
+</body>
+</html>
+
+
