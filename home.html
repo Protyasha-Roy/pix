@@ -10,7 +10,7 @@
     <header class="text-center">
         <div>
             <h1 class="text-red-400 text-5xl">Pix</h1>
-            <p class="text-gray-400">Its a short hand web app to create pixel art. You can download <span class="text-blue-400">PNG</span> of the art you create</p>
+            <p class="text-gray-400">It's a shorthand web app to create pixel art. You can download <span class="text-blue-400">PNG</span> of the art you create</p>
         </div>
 
         <nav class="w-96 m-auto flex justify-around text-blue-700 underline hover:text-blue-800">
@@ -22,49 +22,86 @@
     <main class="mt-7">
         <section>
             <div class="flex flex-col w-8/12 m-auto">
-                <input id="artNameInput" class="border p-2 rounded" type="text" placeholder="enter art name">
                 <button id="newArtBtn" class="bg-green-500 p-2 mt-2 rounded text-white text-xl hover:bg-green-600">New art +</button>
             </div>
         </section>
 
         <section class="m-5 p-2">
             <div>
-                <h2 class="text-gray-700 text-3xl">Your Art Porjects</h2>
-                <div class="p-3">
-                    <p>proect-1</p>
-                    <p>proect-1</p>
-                    <p>proect-1</p>
-                </div>
+                <h2 class="text-gray-700 text-3xl">Your Art Projects</h2>
+                <div id="artsContainer" class="p-3">
+                    <!-- Art projects will be dynamically added here -->
+                </div>    
             </div>
         </section>
     </main>
 
     <script>
         const NewArtBtn = document.getElementById('newArtBtn');
-    const artNameInput = document.getElementById('artNameInput');
 
-    NewArtBtn.addEventListener('click', async () => {
-        const userId = localStorage.getItem('userId');
-        const artName = artNameInput.value;
+        NewArtBtn.addEventListener('click', async () => {
+            const userId = localStorage.getItem('userId');
+            const artName = ''; // or you can prompt the user for a name
+            const pixels = []; // or you can generate or get the pixel data
 
-        // Create or update the project on the server
-        const response = await fetch('http://localhost:10000/createNewArt', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ userId, artName, content: null }),
+            // Send the data to the server (replace this with your server endpoint)
+            fetch('https://pix-server.onrender.com/save', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ userId, artName, pixels }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Art saved successfully:', data);
+
+                // Redirect to the dynamically generated URL
+                const artId = data._id;
+                localStorage.setItem('artId', artId);
+                window.location.href = `/playground.html?id=${data._id}`;
+            })
+            .catch(error => {
+                console.error('Error saving art:', error);
+                // Optionally, you can handle errors or show an error message to the user
+            });
         });
 
-        const data = await response.json();
+        async function fetchUserArts() {
+            const userId = localStorage.getItem('userId');
 
-        if (response.ok) {
-            // Redirect to the playground page with the selected project ID
-            window.location.href = `/playground.html?projectId=${data.projectId}`;
-        } else {
-            console.error('Error creating or updating project:', data.message);
+            // Fetch the user's arts from the server (replace this with your server endpoint)
+            const response = await fetch(`https://pix-server.onrender.com/userArts?userId=${userId}`);
+            const arts = await response.json();
+
+            // Display the fetched arts (replace this with your logic)
+            const artsContainer = document.getElementById('artsContainer');
+            artsContainer.innerHTML = '';
+
+            arts.forEach(art => {
+                const artElement = document.createElement('p');
+                artElement.textContent = art.artName;
+                
+                // Set the art ID in the dataset for later use
+                artElement.dataset.artId = art._id;
+
+                // Add an event listener to each art project element
+                artElement.addEventListener('click', () => {
+                    const artId = artElement.dataset.artId;
+
+                    // Redirect to the display page with the specific art ID
+                    if (artId) {
+                        localStorage.setItem('artId', artId);
+                        window.location.href = `/display.html`; // Change to the correct display page URL
+                    }
+                });
+
+                artsContainer.appendChild(artElement);
+            });
         }
-    });
+
+        // Call the function when the page loads
+        document.addEventListener('DOMContentLoaded', fetchUserArts);
     </script>
 </body>
 </html>

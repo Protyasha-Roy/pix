@@ -3,17 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pixel Art Creator</title>
-   
+    <title>Edit Pixel Art</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 20px;
-        }
-
-        #controls {
-            margin-bottom: 20px;
+            display: flex;
+            place-content: center;
+            flex-direction: column;
+            align-items: center;
         }
 
         #pixelGrid {
@@ -40,61 +36,89 @@
             background-color: #fff;
         }
 
-        #controls button.active {
-            background-color: #4CAF50;
-            color: white;
-        }
-        
-        #artNameInput {
-            margin-bottom: 10px;
+        #colorPicker {
+            margin-top: 10px;
         }
 
+        #saveButton {
+            margin-top: 10px;
+            cursor: pointer;
+            color: #3498db;
+            text-decoration: underline;
+        }
     </style>
-    
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
 </head>
 <body>
-    <div id="controls">
+    <div>
         <input type="color" id="colorPicker" value="#000000">
-        <label for="width">Width:</label>
-        <input type="number" id="width" value="141">
-        <label for="height">Height:</label>
-        <input type="number" id="height" value="83">
-        <button onclick="createGrid()">Create Grid</button>
         <button onclick="setEraserMode()">Eraser</button>
         <button onclick="downloadPixelArt('png')">Download Pixel Art (PNG)</button>
         <label for="artNameInput">Enter art name:</label>
-        <input type="text" id="artNameInput" value="Untitled">
-        <button onclick="savePixelArt()">Save Art</button>
+        <input type="text" id="artNameInput" value="">
+        <div id="saveButton">Save Art</div>
     </div>
+
     <div id="pixelGrid"></div>
 
     <script>
-        let isMouseDown = false;
         let isEraserMode = false;
+        let isMouseDown = false;
+        let width, height;
 
-        function createGrid() {
-            const width = document.getElementById('width').value;
-            const height = document.getElementById('height').value;
+        // Fetch the pixel art data based on the art ID
+        const artId = localStorage.getItem('artId');
+        fetch(`https://pix-server.onrender.com/getArt/${artId}`)
+            .then(response => response.json())
+            .then(data => {
+                // Render the pixel art grid
+                const artNameInput = document.getElementById('artNameInput');
+                console.log(data.art.artName);
+                artNameInput.value = data.art.artName;
+                width = data.art.width;
+                height = data.art.height;
+                renderPixelArt(data.art.pixels, width, height);
+            })
+            .catch(error => {
+                console.error('Error fetching pixel art:', error);
+            });
+
+        function renderPixelArt(pixels, width, height) {
             const pixelGrid = document.getElementById('pixelGrid');
-            pixelGrid.innerHTML = ''; // Clear previous grid
 
-            for (let i = 0; i < width * height; i++) {
+            // Set the pixel grid dimensions
+            pixelGrid.style.gridTemplateColumns = `repeat(${width}, 5px)`;
+            pixelGrid.style.gridTemplateRows = `repeat(${height}, 5px)`;
+
+            // Create pixel elements based on the pixel data
+            pixels.forEach(color => {
                 const pixel = document.createElement('div');
                 pixel.classList.add('pixel');
+                if(color === 'transparent') {
+                    color = pixels[width * height];
+                pixel.style.backgroundColor = color || (color === '' ? ((width + height) % 2 === 0 ? '#eee' : '#fff') : '');
+                } else{
+                    pixel.style.backgroundColor = color || 'transparent';
+                }
                 pixel.addEventListener('mousedown', handleMouseDown);
                 pixel.addEventListener('mouseover', handleMouseOver);
                 pixelGrid.appendChild(pixel);
-            }
+            });
 
-            pixelGrid.style.gridTemplateColumns = `repeat(${width}, 5px)`;
-            pixelGrid.style.gridTemplateRows = `repeat(${height}, 5px)`;
+
+           
+            // Add click event to the "Save Art" button
+            const saveButton = document.getElementById('saveButton');
+            saveButton.addEventListener('click', savePixelArt);
         }
+
 
         function handleMouseDown(event) {
             isMouseDown = true;
-            handleMouseOver(event);
+            handleColorChange(event);
         }
+
 
         function handleMouseOver(event) {
             if (isMouseDown) {
@@ -103,16 +127,15 @@
             }
         }
 
-        function handleMouseUp() {
-            isMouseDown = false;
+        function handleColorChange(event) {
+            if (isMouseDown) {
+                const color = isEraserMode ? '' : document.getElementById('colorPicker').value;
+                event.target.style.backgroundColor = color;
+            }
         }
 
         function setEraserMode() {
             isEraserMode = !isEraserMode;
-
-            // Toggle the 'active' class to highlight the active mode
-            const eraserButton = document.querySelector('#controls button');
-            eraserButton.classList.toggle('active', isEraserMode);
         }
 
         function downloadPixelArt(format) {
@@ -137,13 +160,10 @@
             }
         }
 
-
         function savePixelArt() {
             const artName = document.getElementById('artNameInput').value;
             const pixelGrid = document.getElementById('pixelGrid');
             const userId = localStorage.getItem('userId');
-            const width = document.getElementById('width').value; // Get width
-            const height = document.getElementById('height').value; // Get height
             const artId = localStorage.getItem('artId'); // Get artId
 
             // Get the pixel grid content as an array
@@ -162,8 +182,6 @@
             .then(response => response.json())
             .then(data => {
                 console.log('Art saved successfully:', data);
-                const artNameInput = document.getElementById('artNameInput');
-                artNameInput.value = artName;
                 // Optionally, you can handle success or show a message to the user
             })
             .catch(error => {
@@ -172,8 +190,10 @@
             });
         }
 
-
-        document.addEventListener('mouseup', handleMouseUp);
+        document.addEventListener('mouseup', () => {
+            // Reset isMouseDown on mouseup event
+            isMouseDown = false;
+        });
     </script>
 </body>
 </html>
