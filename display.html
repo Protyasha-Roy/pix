@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Pixel Art</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
     <style>
         body {
             display: flex;
@@ -51,7 +52,7 @@
 
 </head>
 <body>
-    <div>
+    <div class="border">
         <input type="color" id="colorPicker" value="#000000">
         <button onclick="setEraserMode()">Eraser</button>
         <button onclick="downloadPixelArt('png')">Download Pixel Art (PNG)</button>

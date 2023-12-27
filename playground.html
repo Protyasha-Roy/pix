@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pixel Art Creator</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
    
     <style>
         body {
@@ -54,24 +55,44 @@
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </head>
 <body>
-    <div id="controls">
-        <input type="color" id="colorPicker" value="#000000">
-        <label for="width">Width:</label>
-        <input type="number" id="width" value="141">
-        <label for="height">Height:</label>
-        <input type="number" id="height" value="83">
-        <button onclick="createGrid()">Create Grid</button>
-        <button onclick="setEraserMode()">Eraser</button>
-        <button onclick="downloadPixelArt('png')">Download Pixel Art (PNG)</button>
-        <label for="artNameInput">Enter art name:</label>
-        <input type="text" id="artNameInput" value="Untitled">
-        <button onclick="savePixelArt()">Save Art</button>
+    <div id="controls" class="md:flex justify-between md:w-full md:justify-around">
+        <div class="">
+            <div class="flex justify-between mt-2 md:mt-0">
+                <button class="border p-1 text-gray-600 rounded w-3/6 md:w-full" onclick="downloadPixelArt('png')">Download Pixel Art (PNG)</button>
+                <br>
+                <button class="border p-1 text-gray-600 rounded w-3/6" onclick="savePixelArt()">Save Art</button>
+            </div>
+            <div class="border rounded items-center flex flex-row mt-1 justify-around align-center md:p-2">
+                    <label for="artNameInput" class="text-gray-600">Enter art name:</label>
+                    <input class="border p-1 rounded mt-2" type="text" id="artNameInput" value="Untitled">
+            </div>
+        </div>
+        <div class="">
+            <div class="rounded p-2 items-center mt-1 border md:mt-0">
+                <div class="flex items-center justify-around">
+                    <label for="width" class="text-green-700">Width:</label>
+                    <input class="border w-20 rounded p-1" type="number" id="width" value="141">
+                    <label for="height" class="text-green-700">Height:</label>
+                    <input class="border w-20 rounded p-1" type="number" id="height" value="83">
+                    <button class="border p-1 rounded text-gray-600" onclick="createGrid()">Create Grid</button>
+                </div>
+            </div>
+            <div class="flex justify-between mt-2 border rounded p-1">
+                <div class="flex flex-row align-center p-1 border rounded w-3/6">
+                    <label class="text-gray-600" for="colorPicker">Pick Color:</label>
+                    <input type="color" id="colorPicker" value="#000000" class="cursor-pointer w-3/6">
+                </div>
+                <button id="eraserButton" class="bg-red-500 p-1 rounded w-3/6 text-white" onclick="setEraserMode()">Eraser</button>
+            </div>
+        </div>
+        <p id="alertMessage" class="text-green-400 mt-2"></p>
     </div>
     <div id="pixelGrid"></div>
 
     <script>
         let isMouseDown = false;
         let isEraserMode = false;
+        const alertMessage = document.getElementById('alertMessage');
 
         function createGrid() {
             const width = document.getElementById('width').value;
@@ -111,7 +132,7 @@
             isEraserMode = !isEraserMode;
 
             // Toggle the 'active' class to highlight the active mode
-            const eraserButton = document.querySelector('#controls button');
+            const eraserButton = document.querySelector('#eraserButton');
             eraserButton.classList.toggle('active', isEraserMode);
         }
 
@@ -125,6 +146,7 @@
                 }).then(canvas => {
                     // Convert the canvas content to a data URL
                     const dataURL = canvas.toDataURL('image/png');
+                    alertMessage.innerText = 'PNG downloaded.';
 
                     // Create a download link for the user to download the PNG file
                     const downloadLink = document.createElement('a');
@@ -161,9 +183,9 @@
             })
             .then(response => response.json())
             .then(data => {
-                console.log('Art saved successfully:', data);
                 const artNameInput = document.getElementById('artNameInput');
                 artNameInput.value = artName;
+                alertMessage.innerText = "Art saved successfully";
                 // Optionally, you can handle success or show a message to the user
             })
             .catch(error => {
