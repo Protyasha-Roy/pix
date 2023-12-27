@@ -11,6 +11,7 @@
             place-content: center;
             flex-direction: column;
             align-items: center;
+            padding: 10px;
         }
 
         #pixelGrid {
@@ -41,24 +42,29 @@
             margin-top: 10px;
         }
 
-        #saveButton {
-            margin-top: 10px;
-            cursor: pointer;
-            color: #3498db;
-            text-decoration: underline;
+        #eraserButton.active {
+            background-color: rgb(7, 89, 7);
         }
     </style>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 
 </head>
 <body>
-    <div class="border">
-        <input type="color" id="colorPicker" value="#000000">
-        <button onclick="setEraserMode()">Eraser</button>
-        <button onclick="downloadPixelArt('png')">Download Pixel Art (PNG)</button>
-        <label for="artNameInput">Enter art name:</label>
-        <input type="text" id="artNameInput" value="">
-        <div id="saveButton">Save Art</div>
+    <div class="p-2">
+            <div class="flex align-center">
+                <button class="p-1 w-full border rounded cursor-pointer" onclick="downloadPixelArt('png')">Download Pixel Art (PNG)</button>
+                <div id="saveButton" class="text-center text border p-1 rounded w-full cursor-pointer">Save Art</div>
+            </div>
+            <div class="border rounded flex justify-between items-center p-1 mt-1">
+                <label class="" for="artNameInput">Enter art name:</label>
+                <input class="border rounded p-1" type="text" id="artNameInput" value="">
+                <label for="colorPicker">Pick Color:</label>
+                <input class="cursor-pointer" type="color" id="colorPicker" value="#000000">
+            </div>
+            <div class="flex justify-end mt-1">
+                <button class="bg-red-500 p-1 rounded w-2/5 text-white" id="eraserButton" onclick="setEraserMode()">Eraser</button>
+            </div>
+            <p id="alertMessage" class="text-green-400 mt-2 text-center"></p>
     </div>
 
     <div id="pixelGrid"></div>
@@ -67,6 +73,7 @@
         let isEraserMode = false;
         let isMouseDown = false;
         let width, height;
+        const alertMessage = document.getElementById('alertMessage');
 
         // Fetch the pixel art data based on the art ID
         const artId = localStorage.getItem('artId');
@@ -136,6 +143,9 @@
 
         function setEraserMode() {
             isEraserMode = !isEraserMode;
+            // Toggle the 'active' class to highlight the active mode
+            const eraserButton = document.querySelector('#eraserButton');
+            eraserButton.classList.toggle('active', isEraserMode);
         }
 
         function downloadPixelArt(format) {
@@ -148,6 +158,8 @@
                 }).then(canvas => {
                     // Convert the canvas content to a data URL
                     const dataURL = canvas.toDataURL('image/png');
+                    alertMessage.innerText = 'PNG downloaded.';
+
 
                     // Create a download link for the user to download the PNG file
                     const downloadLink = document.createElement('a');
@@ -181,7 +193,7 @@
             })
             .then(response => response.json())
             .then(data => {
-                console.log('Art saved successfully:', data);
+                alertMessage.innerText = "Art saved successfully";
                 // Optionally, you can handle success or show a message to the user
             })
             .catch(error => {
