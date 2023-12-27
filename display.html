@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Pixel Art</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+    <link rel="shortcut icon" href="./pixil-frame-0.png" type="image/x-icon">
     <style>
         body {
             display: flex;
@@ -51,7 +52,9 @@
 </head>
 <body>
     <div class="p-2">
-            <div class="flex align-center">
+        
+        <div class="flex align-center">
+            <a class="underline cursor-pointer text-blue-400 mr-2" href="/home.html">Home</a>
                 <button class="p-1 w-full border rounded cursor-pointer" onclick="downloadPixelArt('png')">Download Pixel Art (PNG)</button>
                 <div id="saveButton" class="text-center text border p-1 rounded w-full cursor-pointer">Save Art</div>
             </div>
