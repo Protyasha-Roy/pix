@@ -74,7 +74,6 @@
             .then(data => {
                 // Render the pixel art grid
                 const artNameInput = document.getElementById('artNameInput');
-                console.log(data.art.artName);
                 artNameInput.value = data.art.artName;
                 width = data.art.width;
                 height = data.art.height;

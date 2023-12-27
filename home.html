@@ -14,23 +14,22 @@
         </div>
 
         <nav class="w-96 m-auto flex justify-around text-blue-700 underline hover:text-blue-800">
-            <a href="index.html">Sign In</a>
+            <p class="cursor-pointer" id="signOutBtn">Sign out</p>
             <a href="instructions.html">Instructions</a>
         </nav>
     </header>
 
     <main class="mt-7">
         <section>
-            <div class="flex flex-col w-8/12 m-auto">
+            <div class="flex flex-col w-8/12 m-auto sm:w-6/12 md:w-5/12 lg:w-3/12">
                 <button id="newArtBtn" class="bg-green-500 p-2 mt-2 rounded text-white text-xl hover:bg-green-600">New art +</button>
             </div>
         </section>
 
         <section class="m-5 p-2">
-            <div>
-                <h2 class="text-gray-700 text-3xl">Your Art Projects</h2>
+            <div class="flex flex-col items-center">
+                <h2 class="text-gray-700 text-3xl bg-gray-200 p-2 rounded text-gray-500 w-11/12 sm:w-9/12 md:w-7/12 lg:w-5/12">Your Art Projects</h2>
                 <div id="artsContainer" class="p-3">
-                    <!-- Art projects will be dynamically added here -->
                 </div>    
             </div>
         </section>
@@ -38,6 +37,14 @@
 
     <script>
         const NewArtBtn = document.getElementById('newArtBtn');
+        const signOutBtn = document.getElementById('signOutBtn');
+
+        signOutBtn.addEventListener('click', async () => {
+            localStorage.removeItem('userId');
+            localStorage.removeItem('artId');
+
+            window.location.href = './index.html';
+        });
 
         NewArtBtn.addEventListener('click', async () => {
             const userId = localStorage.getItem('userId');
@@ -81,7 +88,15 @@
             arts.forEach(art => {
                 const artElement = document.createElement('p');
                 artElement.textContent = art.artName;
-                
+                // artElement.style.border = '1px solid';
+                artElement.style.borderRadius = '5px';
+                // artElement.style.display = 'inline-block';
+                artElement.style.padding = '2px';
+                artElement.style.color = 'blue';
+                artElement.style.cursor = 'pointer';
+                artElement.style.textDecoration = 'underline';
+
+
                 // Set the art ID in the dataset for later use
                 artElement.dataset.artId = art._id;
 
