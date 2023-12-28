@@ -15,28 +15,9 @@
             padding: 10px;
         }
 
-        #pixelGrid {
-            display: inline-grid;
-            align-items: center;
-            justify-content: center;
+        #pixelCanvas {
             border: 1px solid rgb(218, 216, 216);
-        }
-
-        .pixel {
-            width: 5px;
-            height: 5px;
             cursor: pointer;
-            border: none;
-            display: inline-block;
-            width: 100%;
-        }
-
-        .pixel:nth-child(odd) {
-            background-color: #eee;
-        }
-
-        .pixel:nth-child(even) {
-            background-color: #fff;
         }
 
         #colorPicker {
@@ -48,35 +29,36 @@
         }
     </style>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-
 </head>
 <body>
     <div class="p-2">
-        
         <div class="flex align-center">
             <a class="underline cursor-pointer text-blue-400 mr-2" href="/home.html">Home</a>
-                <button class="p-1 w-full border rounded cursor-pointer" onclick="downloadPixelArt('png')">Download Pixel Art (PNG)</button>
-                <div id="saveButton" class="text-center text border p-1 rounded w-full cursor-pointer">Save Art</div>
-            </div>
-            <div class="border rounded flex justify-between items-center p-1 mt-1">
-                <label class="" for="artNameInput">Enter art name:</label>
-                <input class="border rounded p-1" type="text" id="artNameInput" value="">
-                <label for="colorPicker">Pick Color:</label>
-                <input class="cursor-pointer" type="color" id="colorPicker" value="#000000">
-            </div>
-            <div class="flex justify-end mt-1">
-                <button class="bg-red-500 p-1 rounded w-2/5 text-white" id="eraserButton" onclick="setEraserMode()">Eraser</button>
-            </div>
-            <p id="alertMessage" class="text-green-400 mt-2 text-center"></p>
+            <button class="p-1 w-full border rounded cursor-pointer" onclick="downloadPixelArt('png')">Download Pixel Art (PNG)</button>
+            <div id="saveButton" class="text-center text border p-1 rounded w-full cursor-pointer">Save Art</div>
+        </div>
+        <div class="border rounded flex justify-between items-center p-1 mt-1">
+            <label class="" for="artNameInput">Enter art name:</label>
+            <input class="border rounded p-1" type="text" id="artNameInput" value="">
+            <label for="colorPicker">Pick Color:</label>
+            <input class="cursor-pointer" type="color" id="colorPicker" value="#000000">
+        </div>
+        <div class="flex justify-end mt-1">
+            <button class="bg-red-500 p-1 rounded w-2/5 text-white" id="eraserButton" onclick="setEraserMode()">Eraser</button>
+        </div>
+        <p id="alertMessage" class="text-green-400 mt-2 text-center"></p>
     </div>
 
-    <div id="pixelGrid"></div>
+    <canvas id="pixelCanvas" width="1000" height="500"></canvas>
 
     <script>
         let isEraserMode = false;
         let isMouseDown = false;
         let width, height;
         const alertMessage = document.getElementById('alertMessage');
+        const pixelCanvas = document.getElementById('pixelCanvas');
+        const canvas = document.getElementById('pixelCanvas');
+const context = canvas.getContext('2d', { willReadFrequently: true });
 
         // Fetch the pixel art data based on the art ID
         const artId = localStorage.getItem('artId');
@@ -87,6 +69,7 @@
                 const artNameInput = document.getElementById('artNameInput');
                 artNameInput.value = data.art.artName;
                 width = data.art.width;
+                console.log(data.art.pixels)
                 height = data.art.height;
                 renderPixelArt(data.art.pixels, width, height);
             })
@@ -94,34 +77,39 @@
                 console.error('Error fetching pixel art:', error);
             });
 
-        function renderPixelArt(pixels, width, height) {
-            const pixelGrid = document.getElementById('pixelGrid');
 
-            // Set the pixel grid dimensions
-            pixelGrid.style.gridTemplateColumns = `repeat(${width}, 5px)`;
-            pixelGrid.style.gridTemplateRows = `repeat(${height}, 5px)`;
+            function renderPixelArt(pixels, width, height) {
+    // Set the pixel grid dimensions
+    pixelCanvas.width = width * 5; // 5 pixels per unit
+    pixelCanvas.height = height * 5;
 
-            // Create pixel elements based on the pixel data
-            pixels.forEach(color => {
-                const pixel = document.createElement('div');
-                pixel.classList.add('pixel');
-                if(color === 'transparent') {
-                    color = pixels[width * height];
-                pixel.style.backgroundColor = color || (color === '' ? ((width + height) % 2 === 0 ? '#eee' : '#fff') : '');
-                } else{
-                    pixel.style.backgroundColor = color || 'transparent';
-                }
-                pixel.addEventListener('mousedown', handleMouseDown);
-                pixel.addEventListener('mouseover', handleMouseOver);
-                pixelGrid.appendChild(pixel);
-            });
+    // Clear the canvas
+    context.clearRect(0, 0, pixelCanvas.width, pixelCanvas.height);
 
+    // Create pixel elements based on the pixel data
+    for (let i = 0; i < pixels.length; i += 4) {
+        const index = i / 4;
+        const x = (index % width) * 5;
+        const y = Math.floor(index / width) * 5;
 
-           
-            // Add click event to the "Save Art" button
-            const saveButton = document.getElementById('saveButton');
-            saveButton.addEventListener('click', savePixelArt);
-        }
+        // Extract RGBA values from the array
+        const r = pixels[i];
+        const g = pixels[i + 1];
+        const b = pixels[i + 2];
+        const a = pixels[i + 3] / 255; // Normalize alpha value
+
+        // Convert RGBA values to a CSS color string
+        const color = `rgba(${r}, ${g}, ${b}, ${a})`;
+
+        context.fillStyle = color;
+        context.fillRect(x, y, 5, 5);
+    }
+
+    // Add click event to the "Save Art" button
+    const saveButton = document.getElementById('saveButton');
+    saveButton.addEventListener('click', savePixelArt);
+}
+
 
 
         function handleMouseDown(event) {
@@ -129,20 +117,28 @@
             handleColorChange(event);
         }
 
-
         function handleMouseOver(event) {
             if (isMouseDown) {
-                const color = isEraserMode ? '' : document.getElementById('colorPicker').value;
-                event.target.style.backgroundColor = color;
+                handleColorChange(event);
             }
         }
 
+
         function handleColorChange(event) {
-            if (isMouseDown) {
-                const color = isEraserMode ? '' : document.getElementById('colorPicker').value;
-                event.target.style.backgroundColor = color;
-            }
-        }
+    const rect = pixelCanvas.getBoundingClientRect();
+    const x = Math.floor((event.clientX - rect.left) / 5) * 5;
+    const y = Math.floor((event.clientY - rect.top) / 5) * 5;
+    const color = isEraserMode ? 'transparent' : document.getElementById('colorPicker').value;
+
+    if (isEraserMode) {
+        // Clear the region with a transparent color
+        context.clearRect(x, y, 5, 5);
+    } else {
+        // Draw a colored pixel
+        context.fillStyle = color;
+        context.fillRect(x, y, 5, 5);
+    }
+}
 
         function setEraserMode() {
             isEraserMode = !isEraserMode;
@@ -152,17 +148,15 @@
         }
 
         function downloadPixelArt(format) {
-            const pixelGrid = document.getElementById('pixelGrid');
             if (format === 'png') {
-                // Use html2canvas to capture the content of the pixel grid
-                html2canvas(pixelGrid, {
+                // Use html2canvas to capture the content of the canvas
+                html2canvas(pixelCanvas, {
                     backgroundColor: null,
                     scale: 2, // Adjust scale for higher resolution
                 }).then(canvas => {
                     // Convert the canvas content to a data URL
                     const dataURL = canvas.toDataURL('image/png');
                     alertMessage.innerText = 'PNG downloaded.';
-
 
                     // Create a download link for the user to download the PNG file
                     const downloadLink = document.createElement('a');
@@ -176,15 +170,32 @@
         }
 
         function savePixelArt() {
-            const artName = document.getElementById('artNameInput').value;
-            const pixelGrid = document.getElementById('pixelGrid');
-            const userId = localStorage.getItem('userId');
-            const artId = localStorage.getItem('artId'); // Get artId
+    const artName = document.getElementById('artNameInput').value;
+    const userId = localStorage.getItem('userId');
+    const artId = localStorage.getItem('artId'); // Get artId
 
-            // Get the pixel grid content as an array
-            const pixelArray = Array.from(pixelGrid.children).map(pixel => {
-                return pixel.style.backgroundColor || 'transparent';
-            });
+    // Use html2canvas to capture the content of the pixel canvas
+    html2canvas(canvas, {
+        backgroundColor: null,
+        scale: 1, // Adjust scale if needed
+    }).then(canvas => {
+        // Convert the canvas content to a data URL
+        const dataURL = canvas.toDataURL('image/png');
+
+        // Create a new image element
+        const img = new Image();
+        img.src = dataURL;
+
+        // Extract the pixel data from the image
+        img.onload = function () {
+            const tempCanvas = document.createElement('canvas');
+            const tempContext = tempCanvas.getContext('2d');
+            tempCanvas.width = width;
+            tempCanvas.height = height;
+            tempContext.drawImage(img, 0, 0, width, height);
+
+            // Get the pixel content as an array
+            const pixelArray = Array.from(tempContext.getImageData(0, 0, width, height).data);
 
             // Send the data to the server (replace this with your server endpoint)
             fetch('https://pix-server.onrender.com/save', {
@@ -196,6 +207,8 @@
             })
             .then(response => response.json())
             .then(data => {
+                const artNameInput = document.getElementById('artNameInput');
+                artNameInput.value = artName;
                 alertMessage.innerText = "Art saved successfully";
                 // Optionally, you can handle success or show a message to the user
             })
@@ -203,12 +216,17 @@
                 console.error('Error saving art:', error);
                 // Optionally, you can handle errors or show an error message to the user
             });
-        }
+        };
+    });
+}
 
+pixelCanvas.addEventListener('mousedown', handleMouseDown);
+        pixelCanvas.addEventListener('mousemove', handleMouseOver);
         document.addEventListener('mouseup', () => {
             // Reset isMouseDown on mouseup event
             isMouseDown = false;
         });
+
     </script>
 </body>
 </html>

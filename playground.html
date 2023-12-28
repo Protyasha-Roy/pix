@@ -17,41 +17,21 @@
             margin-bottom: 20px;
         }
 
-        #pixelGrid {
-            display: inline-grid;
-            align-items: center;
-            justify-content: center;
+        #pixelCanvas {
             border: 1px solid rgb(218, 216, 216);
-        }
-
-        .pixel {
-            width: 5px;
-            height: 5px;
             cursor: pointer;
-            border: none;
-            display: inline-block;
-            width: 100%;
-        }
-
-        .pixel:nth-child(odd) {
-            background-color: #eee;
-        }
-
-        .pixel:nth-child(even) {
-            background-color: #fff;
         }
 
         #controls button.active {
             background-color: #4CAF50;
             color: white;
         }
-        
+
         #artNameInput {
             margin-bottom: 10px;
         }
-
     </style>
-    
+
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </head>
 <body>
@@ -88,91 +68,136 @@
         </div>
     </div>
     <p id="alertMessage" class="text-green-400 mt-2"></p>
-    <div id="pixelGrid"></div>
+    <canvas id="pixelCanvas" willReadFrequently></canvas>
 
-    <script>
-        let isMouseDown = false;
-        let isEraserMode = false;
-        const alertMessage = document.getElementById('alertMessage');
 
-        function createGrid() {
-            const width = document.getElementById('width').value;
-            const height = document.getElementById('height').value;
-            const pixelGrid = document.getElementById('pixelGrid');
-            pixelGrid.innerHTML = ''; // Clear previous grid
+<!-- ... (previous HTML code) ... -->
 
-            for (let i = 0; i < width * height; i++) {
-                const pixel = document.createElement('div');
-                pixel.classList.add('pixel');
-                pixel.addEventListener('mousedown', handleMouseDown);
-                pixel.addEventListener('mouseover', handleMouseOver);
-                pixelGrid.appendChild(pixel);
-            }
+<script>
+    const canvas = document.getElementById('pixelCanvas');
+const context = canvas.getContext('2d', { willReadFrequently: true });
 
-            pixelGrid.style.gridTemplateColumns = `repeat(${width}, 5px)`;
-            pixelGrid.style.gridTemplateRows = `repeat(${height}, 5px)`;
-        }
+    let isMouseDown = false;
+    let isEraserMode = false;
+    const alertMessage = document.getElementById('alertMessage');
 
-        function handleMouseDown(event) {
-            isMouseDown = true;
-            handleMouseOver(event);
-        }
+    canvas.addEventListener('mousedown', handleMouseDown);
+    canvas.addEventListener('mousemove', handleMouseMove);
+    canvas.addEventListener('mouseup', handleMouseUp);
 
-        function handleMouseOver(event) {
-            if (isMouseDown) {
-                const color = isEraserMode ? '' : document.getElementById('colorPicker').value;
-                event.target.style.backgroundColor = color;
+    function createGrid() {
+        const width = document.getElementById('width').value;
+        const height = document.getElementById('height').value;
+        canvas.width = width * 5; // 5 pixels per unit
+        canvas.height = height * 5;
+
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
+        for (let i = 0; i < width; i++) {
+            for (let j = 0; j < height; j++) {
+                const color = (i + j) % 2 === 0 ? '#fff' : '#eee';
+                context.fillStyle = color;
+                context.fillRect(i * 5, j * 5, 5, 5);
             }
         }
+    }
 
-        function handleMouseUp() {
-            isMouseDown = false;
-        }
+    function handleMouseDown(event) {
+        isMouseDown = true;
+        handleMouseMove(event);
+    }
 
-        function setEraserMode() {
-            isEraserMode = !isEraserMode;
+    function handleMouseMove(event) {
+    if (isMouseDown) {
+        const x = Math.floor(event.offsetX / 5) * 5;
+        const y = Math.floor(event.offsetY / 5) * 5;
 
-            // Toggle the 'active' class to highlight the active mode
-            const eraserButton = document.querySelector('#eraserButton');
-            eraserButton.classList.toggle('active', isEraserMode);
-        }
+        // Check if the pixel is within the canvas boundaries
+        if (x >= 0 && x < canvas.width && y >= 0 && y < canvas.height) {
+            const pixel = context.getImageData(x, y, 1, 1).data;
 
-        function downloadPixelArt(format) {
-            const pixelGrid = document.getElementById('pixelGrid');
-            if (format === 'png') {
-                // Use html2canvas to capture the content of the pixel grid
-                html2canvas(pixelGrid, {
-                    backgroundColor: null,
-                    scale: 2, // Adjust scale for higher resolution
-                }).then(canvas => {
-                    // Convert the canvas content to a data URL
-                    const dataURL = canvas.toDataURL('image/png');
-                    alertMessage.innerText = 'PNG downloaded.';
+            // Check if the pixel is colored
+            const isColored = pixel[0] !== 255 || pixel[1] !== 255 || pixel[2] !== 255 || pixel[3] !== 0;
 
-                    // Create a download link for the user to download the PNG file
-                    const downloadLink = document.createElement('a');
-                    downloadLink.href = dataURL;
-                    downloadLink.download = 'pixel_art.png';
-                    document.body.appendChild(downloadLink);
-                    downloadLink.click();
-                    document.body.removeChild(downloadLink);
-                });
+            if (isEraserMode && isColored) {
+                // If eraser mode and the pixel is colored, erase it
+                context.clearRect(x, y, 5, 5);
+                // Draw the original background color
+                const color = (x / 5 + y / 5) % 2 === 0 ? '#fff' : '#eee';
+                context.fillStyle = color;
+                context.fillRect(x, y, 5, 5);
+            } else if (!isEraserMode) {
+                // If not eraser mode, draw with the selected color
+                const color = document.getElementById('colorPicker').value;
+                context.fillStyle = color;
+                context.fillRect(x, y, 5, 5);
             }
         }
+    }
+}
 
+    function handleMouseUp() {
+        isMouseDown = false;
+    }
 
-        function savePixelArt() {
-            const artName = document.getElementById('artNameInput').value;
-            const pixelGrid = document.getElementById('pixelGrid');
-            const userId = localStorage.getItem('userId');
-            const width = document.getElementById('width').value; // Get width
-            const height = document.getElementById('height').value; // Get height
-            const artId = localStorage.getItem('artId'); // Get artId
+    function setEraserMode() {
+        isEraserMode = !isEraserMode;
 
-            // Get the pixel grid content as an array
-            const pixelArray = Array.from(pixelGrid.children).map(pixel => {
-                return pixel.style.backgroundColor || 'transparent';
+        const eraserButton = document.querySelector('#eraserButton');
+        eraserButton.classList.toggle('active', isEraserMode);
+    }
+
+    function downloadPixelArt(format) {
+        if (format === 'png') {
+            // Use html2canvas to capture the content of the canvas
+            html2canvas(canvas, {
+                backgroundColor: null,
+                scale: 2, // Adjust scale for higher resolution
+            }).then(canvas => {
+                // Convert the canvas content to a data URL
+                const dataURL = canvas.toDataURL('image/png');
+                alertMessage.innerText = 'PNG downloaded.';
+
+                // Create a download link for the user to download the PNG file
+                const downloadLink = document.createElement('a');
+                downloadLink.href = dataURL;
+                downloadLink.download = 'pixel_art.png';
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
             });
+        }
+    }
+
+    function savePixelArt() {
+    const artName = document.getElementById('artNameInput').value;
+    const userId = localStorage.getItem('userId');
+    const width = document.getElementById('width').value; // Get width
+    const height = document.getElementById('height').value; // Get height
+    const artId = localStorage.getItem('artId'); // Get artId
+
+    // Use html2canvas to capture the content of the pixel canvas
+    html2canvas(canvas, {
+        backgroundColor: null,
+        scale: 2, // Adjust scale if needed
+    }).then(canvas => {
+        // Convert the canvas content to a data URL
+        const dataURL = canvas.toDataURL('image/png');
+
+        // Create a new image element
+        const img = new Image();
+        img.src = dataURL;
+
+        // Extract the pixel data from the image
+        img.onload = function () {
+            const tempCanvas = document.createElement('canvas');
+            const tempContext = tempCanvas.getContext('2d');
+            tempCanvas.width = width;
+            tempCanvas.height = height;
+            tempContext.drawImage(img, 0, 0, width, height);
+
+            // Get the pixel content as an array
+            const pixelArray = Array.from(tempContext.getImageData(0, 0, width, height).data);
 
             // Send the data to the server (replace this with your server endpoint)
             fetch('https://pix-server.onrender.com/save', {
@@ -193,10 +218,13 @@
                 console.error('Error saving art:', error);
                 // Optionally, you can handle errors or show an error message to the user
             });
-        }
+        };
+    });
+}
 
+</script>
 
-        document.addEventListener('mouseup', handleMouseUp);
-    </script>
+<!-- ... (remaining HTML code) ... -->
+
 </body>
 </html>
