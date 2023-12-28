@@ -68,7 +68,7 @@
         </div>
     </div>
     <p id="alertMessage" class="text-green-400 mt-2"></p>
-    <canvas id="pixelCanvas" willReadFrequently></canvas>
+    <canvas class="border m-auto" id="pixelCanvas" willReadFrequently></canvas>
 
 
 <!-- ... (previous HTML code) ... -->
@@ -176,49 +176,33 @@ const context = canvas.getContext('2d', { willReadFrequently: true });
     const height = document.getElementById('height').value; // Get height
     const artId = localStorage.getItem('artId'); // Get artId
 
-    // Use html2canvas to capture the content of the pixel canvas
-    html2canvas(canvas, {
-        backgroundColor: null,
-        scale: 2, // Adjust scale if needed
-    }).then(canvas => {
-        // Convert the canvas content to a data URL
-        const dataURL = canvas.toDataURL('image/png');
+    // Create an array to store pixel data
+    const pixelArray = [];
 
-        // Create a new image element
-        const img = new Image();
-        img.src = dataURL;
+    // Loop through the pixels in the grid and extract color information
+    for (let i = 0; i < width * height * 4; i += 4) {
+        const pixel = context.getImageData(i % (width * 4), Math.floor(i / (width * 4)), 1, 1).data;
+        pixelArray.push(...pixel);
+    }
 
-        // Extract the pixel data from the image
-        img.onload = function () {
-            const tempCanvas = document.createElement('canvas');
-            const tempContext = tempCanvas.getContext('2d');
-            tempCanvas.width = width;
-            tempCanvas.height = height;
-            tempContext.drawImage(img, 0, 0, width, height);
-
-            // Get the pixel content as an array
-            const pixelArray = Array.from(tempContext.getImageData(0, 0, width, height).data);
-
-            // Send the data to the server (replace this with your server endpoint)
-            fetch('https://pix-server.onrender.com/save', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ userId, artName, pixels: pixelArray, width, height, artId }), // Include artId
-            })
-            .then(response => response.json())
-            .then(data => {
-                const artNameInput = document.getElementById('artNameInput');
-                artNameInput.value = artName;
-                alertMessage.innerText = "Art saved successfully";
-                // Optionally, you can handle success or show a message to the user
-            })
-            .catch(error => {
-                console.error('Error saving art:', error);
-                // Optionally, you can handle errors or show an error message to the user
-            });
-        };
+    // Send the data to the server (replace this with your server endpoint)
+    fetch('https://pix-server.onrender.com/save', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId, artName, pixels: pixelArray, width, height, artId }), // Include artId
+    })
+    .then(response => response.json())
+    .then(data => {
+        const artNameInput = document.getElementById('artNameInput');
+        artNameInput.value = artName;
+        alertMessage.innerText = "Art saved successfully";
+        // Optionally, you can handle success or show a message to the user
+    })
+    .catch(error => {
+        console.error('Error saving art:', error);
+        // Optionally, you can handle errors or show an error message to the user
     });
 }
 
