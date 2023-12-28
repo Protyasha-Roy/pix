@@ -86,7 +86,7 @@
             const artsContainer = document.getElementById('artsContainer');
             artsContainer.innerHTML = '';
 
-            arts.forEach(art => {
+            arts.reverse().forEach(art => {
                 const artElement = document.createElement('p');
                 artElement.textContent = art.artName;
                 // artElement.style.border = '1px solid';
