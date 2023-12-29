@@ -3,74 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
-    <link rel="shortcut icon" href="./pixil-frame-0.png" type="image/x-icon">
-    <title>Sign In</title>
+    <title>Pix</title>
 </head>
 <body>
-
-    <div class="container mx-auto flex justify-center items-center h-screen">
-        <div class="w-full max-w-md">
-            <form id="signupForm" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-                <h2 class="text-2xl font-bold mb-6 text-gray-500 text-center">Sign In/Sign Up</h2>
-                <div class="mb-4">
-                    <label class="block text-gray-600 text-sm font-bold mb-2" for="userEmail">
-                        Email:
-                    </label>
-                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="userEmail" name="userEmail" type="email" placeholder="Email" required>
-                </div>
-                <div class="mb-6">
-                    <label class="block text-gray-600 text-sm font-bold mb-2" for="userPassword">
-                        Password:
-                    </label>
-                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="userPassword" name="userPassword" type="password" placeholder="Password" required>
-                </div>
-                <div class="flex items-center justify-center flex-col">
-                    <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="button" onclick="signIn()" id="submitBtn">
-                        Sign In
-                    </button>
-                    <div id="signInMessage" class="text-red-500 text-md mt-2"></div>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <script>
-        async function signIn() {
-          const email = document.getElementById('userEmail').value;
-        const password = document.getElementById('userPassword').value;
+        document.addEventListener('DOMContentLoaded', function () {
+            // Check if userId exists in localStorage
+            const userId = localStorage.getItem('userId');
 
-    
-      if (!email || !password) {
-        document.getElementById('signInMessage').innerText = 'Fill in all the fields';
-        return;
-      }
-      else {
-        try {
-          const response = await fetch('https://pix-server.onrender.com/signin', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ email, password }),
-          });
-    
-          const data = await response.json();
-    
-          if (response.ok) {
-            // Save user ID to localStorage
-            localStorage.setItem('userId', data.userId);
-            window.location.href = '/home.html';
-          } else {
-            document.getElementById('signInMessage').innerText = `Error: ${data.message}`;
-          }
-        } catch (error) {
-          console.error('Error during sign in:', error);
-          document.getElementById('signInMessage').innerText = 'Internal Server Error';
-        }
-      }
-    
-        }
+            // Redirect to the appropriate page
+            if (userId) {
+                window.location.href = '/home.html'; // Replace with your home page URL
+            } else {
+                window.location.href = '/signin.html'; // Replace with your sign-in page URL
+            }
+        });
     </script>
 </body>
 </html>
