@@ -213,9 +213,11 @@
     const pixelArray = [];
 
     // Loop through the pixels in the grid and extract color information
-    for (let i = 0; i < width * height * 4; i += 4) {
-        const pixel = context.getImageData(i % (width * 4), Math.floor(i / (width * 4)), 1, 1).data;
-        pixelArray.push(...pixel);
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const pixel = context.getImageData(x * 5, y * 5, 1, 1).data;
+            pixelArray.push(...pixel);
+        }
     }
 
     // Send the data to the server (replace this with your server endpoint)
@@ -238,6 +240,7 @@
         // Optionally, you can handle errors or show an error message to the user
     });
 }
+
 
 </script>
 
