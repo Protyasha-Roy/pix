@@ -90,7 +90,7 @@
     function fetchArtData() {
             const artId = localStorage.getItem('artId');
             // Fetch the art data from the server (replace with your server endpoint)
-            fetch(`http://localhost:10000/getArtData?artId=${artId}`)
+            fetch(`https://pix-server.onrender.com/getArtData?artId=${artId}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data) {
