@@ -30,6 +30,7 @@
         <section class="m-5 p-1">
             <div class="flex flex-col items-center">
                 <h2 class="text-gray-700 text-2xl bg-gray-200 p-2 rounded text-gray-500 w-11/12 sm:w-9/12 md:w-7/12 lg:w-5/12">Your Art Projects</h2>
+                <p id="alertMessage"></p>
                 <div id="artsContainer" class="p-3">
                 </div>    
             </div>
@@ -77,11 +78,17 @@
 
         async function fetchUserArts() {
             const userId = localStorage.getItem('userId');
+            const alertMessage = document.getElementById('alertMessage');
+
+            alertMessage.innerText = 'Loading...';
 
             // Fetch the user's arts from the server (replace this with your server endpoint)
             const response = await fetch(`https://pix-server.onrender.com/userArts?userId=${userId}`);
             const arts = await response.json();
 
+            if(response.ok) {
+                alertMessage.innerText = '';
+            }
             // Display the fetched arts (replace this with your logic)
             const artsContainer = document.getElementById('artsContainer');
             artsContainer.innerHTML = '';
