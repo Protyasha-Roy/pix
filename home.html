@@ -94,19 +94,34 @@
             artsContainer.innerHTML = '';
 
             arts.reverse().forEach(art => {
+                const div = document.createElement('div');
                 const artElement = document.createElement('p');
+                const deleteBtn = document.createElement('button');
+
+                div.style.display = 'flex';
+                div.style.gap = '20px';
+                div.style.marginTop = '4px';
+
+
+                deleteBtn.innerText = 'Delete';
+                deleteBtn.style.backgroundColor = 'rgb(242, 119, 125)';
+                deleteBtn.style.padding = '1px';
+                deleteBtn.style.color = 'white'
+                deleteBtn.style.borderRadius = '5px';
+                deleteBtn.style.fontSize = '10px';
+
+
                 artElement.textContent = art.artName;
-                // artElement.style.border = '1px solid';
                 artElement.style.borderRadius = '5px';
-                // artElement.style.display = 'inline-block';
-                artElement.style.padding = '2px';
                 artElement.style.color = 'blue';
                 artElement.style.cursor = 'pointer';
+                artElement.style.marginTop = '6px';
                 artElement.style.textDecoration = 'underline';
 
 
                 // Set the art ID in the dataset for later use
                 artElement.dataset.artId = art._id;
+                deleteBtn.dataset.artId = art._id;
 
                 // Add an event listener to each art project element
                 artElement.addEventListener('click', () => {
@@ -119,7 +134,28 @@
                     }
                 });
 
-                artsContainer.appendChild(artElement);
+                deleteBtn.addEventListener('click',async () => {
+                    const artId = deleteBtn.dataset.artId;
+
+                    // Redirect to the display page with the specific art ID
+                    if (artId) {
+                        const response = await fetch(`https://pix-server.onrender.com/deleteArt?artId=${artId}`, {
+                            method: 'DELETE',
+                        });
+
+                    if (response.ok) {
+                        fetchUserArts();
+                    } else {
+                        console.error('Error deleting art:', response.statusText);
+                        // Optionally, you can handle errors or show an error message to the user
+                    }
+                }
+                });
+
+                div.appendChild(artElement)
+                div.appendChild(deleteBtn)
+
+                artsContainer.appendChild(div);
             });
         }
 

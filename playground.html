@@ -93,7 +93,7 @@
     async function handleDelete() {
     // Send a request to the server to delete the art
     const artId = localStorage.getItem('artId');
-    const response = await fetch(`http://localhost:10000/deleteArt?artId=${artId}`, {
+    const response = await fetch(`https://pix-server.onrender.com/deleteArt?artId=${artId}`, {
         method: 'DELETE',
     });
 
