@@ -75,7 +75,8 @@
 
 <script>
     const canvas = document.getElementById('pixelCanvas');
-const context = canvas.getContext('2d', { willReadFrequently: true });
+    const context = canvas.getContext('2d', { willReadFrequently: true });
+    fetchArtData();
 
     let isMouseDown = false;
     let isEraserMode = false;
@@ -84,6 +85,38 @@ const context = canvas.getContext('2d', { willReadFrequently: true });
     canvas.addEventListener('mousedown', handleMouseDown);
     canvas.addEventListener('mousemove', handleMouseMove);
     canvas.addEventListener('mouseup', handleMouseUp);
+
+
+    function fetchArtData() {
+            const artId = localStorage.getItem('artId');
+            // Fetch the art data from the server (replace with your server endpoint)
+            fetch(`http://localhost:10000/getArtData?artId=${artId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data) {
+                        loadPixelData(data[0].pixels, data[0].width, data[0].height);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching art data:', error);
+                });
+        }
+
+        function loadPixelData(pixelArray, width, height) {
+            canvas.width = width * 5;
+            canvas.height = height * 5;
+
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Loop through the pixels and draw them on the canvas
+            for (let i = 0; i < pixelArray.length; i += 4) {
+                const x = (i / 4) % width * 5;
+                const y = Math.floor((i / 4) / width) * 5;
+                const color = `rgba(${pixelArray[i]}, ${pixelArray[i + 1]}, ${pixelArray[i + 2]}, ${pixelArray[i + 3] / 255})`;
+                context.fillStyle = color;
+                context.fillRect(x, y, 5, 5);
+            }
+        }
 
     function createGrid() {
         const width = document.getElementById('width').value;

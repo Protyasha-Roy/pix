@@ -108,7 +108,7 @@
                     // Redirect to the display page with the specific art ID
                     if (artId) {
                         localStorage.setItem('artId', artId);
-                        window.location.href = `/display.html`; // Change to the correct display page URL
+                        window.location.href = `/playground.html?id=${artId}`; // Change to the correct display page URL
                     }
                 });
 
