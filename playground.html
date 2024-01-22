@@ -18,17 +18,20 @@
         }
 
         #pixelCanvas {
-            border: 1px solid rgb(218, 216, 216);
             cursor: pointer;
         }
 
         #controls button.active {
-            background-color: #4CAF50;
+            background-color: #4CAF30;
             color: white;
         }
 
         #artNameInput {
             margin-bottom: 10px;
+        }
+        #brushSize {
+            width: 80%; /* Adjust width as needed */
+            margin-top: 5px;
         }
     </style>
 
@@ -53,9 +56,9 @@
             <div class="rounded p-2 items-center mt-1 border md:mt-0">
                 <div class="flex items-center justify-around">
                     <label for="width" class="text-green-700">Width:</label>
-                    <input class="border w-20 rounded p-1" type="number" id="width" value="141">
+                    <input class="border w-20 rounded p-1" type="number" id="width" value="200">
                     <label for="height" class="text-green-700">Height:</label>
-                    <input class="border w-20 rounded p-1" type="number" id="height" value="83">
+                    <input class="border w-20 rounded p-1" type="number" id="height" value="150">
                     <button class="border p-1 rounded text-gray-600" onclick="createGrid()">Create Grid</button>
                 </div>
             </div>
@@ -64,12 +67,17 @@
                     <label class="text-gray-600" for="colorPicker">Pick Color:</label>
                     <input type="color" id="colorPicker" value="#000000" class="cursor-pointer w-3/6">
                 </div>
-                <button id="eraserButton" class="bg-red-500 p-1 rounded w-3/6 text-white" onclick="setEraserMode()">Eraser</button>
+                <button id="eraserButton" class="bg-red-300 p-1 rounded w-3/6 text-white" onclick="setEraserMode()">Eraser</button>
             </div>
+            <div class="flex justify-between mt-2 border rounded p-1">
+                <label class="text-gray-600" for="brushSize">Brush Size:</label>
+                <input type="range" id="brushSize" min="1" max="100" value="1" class="cursor-pointer w-3/6">
+            </div>
+            
         </div>
     </div>
     <p id="alertMessage" class="text-green-400 mt-2"></p>
-    <canvas class="border m-auto" id="pixelCanvas" willReadFrequently></canvas>
+    <canvas class="m-auto" id="pixelCanvas" willReadFrequently></canvas>
 
 
 <!-- ... (previous HTML code) ... -->
@@ -78,6 +86,12 @@
     const canvas = document.getElementById('pixelCanvas');
     const context = canvas.getContext('2d', { willReadFrequently: true });
     const deleteBtn = document.getElementById('deleteBtn');
+    const brushSizeInput = document.getElementById('brushSize');
+    let brushSize = brushSizeInput.value;
+
+    brushSizeInput.addEventListener('input', () => {
+        brushSize = brushSizeInput.value;
+    });
 
     fetchArtData();
 
@@ -130,26 +144,26 @@
         }
 
         function loadPixelData(pixelArray, width, height) {
-            canvas.width = width * 5;
-            canvas.height = height * 5;
+            canvas.width = width * 3;
+            canvas.height = height * 3;
 
             context.clearRect(0, 0, canvas.width, canvas.height);
 
             // Loop through the pixels and draw them on the canvas
             for (let i = 0; i < pixelArray.length; i += 4) {
-                const x = (i / 4) % width * 5;
-                const y = Math.floor((i / 4) / width) * 5;
+                const x = (i / 4) % width * 3;
+                const y = Math.floor((i / 4) / width) * 3;
                 const color = `rgba(${pixelArray[i]}, ${pixelArray[i + 1]}, ${pixelArray[i + 2]}, ${pixelArray[i + 3] / 255})`;
                 context.fillStyle = color;
-                context.fillRect(x, y, 5, 5);
+                context.fillRect(x, y, 3, 3);
             }
         }
 
     function createGrid() {
         const width = document.getElementById('width').value;
         const height = document.getElementById('height').value;
-        canvas.width = width * 5; // 5 pixels per unit
-        canvas.height = height * 5;
+        canvas.width = width * 3; // 3 pixels per unit
+        canvas.height = height * 3;
 
         context.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -157,7 +171,7 @@
             for (let j = 0; j < height; j++) {
                 const color = (i + j) % 2 === 0 ? '#fff' : '#eee';
                 context.fillStyle = color;
-                context.fillRect(i * 5, j * 5, 5, 5);
+                context.fillRect(i * 3, j * 3, 3, 3);
             }
         }
     }
@@ -167,34 +181,48 @@
         handleMouseMove(event);
     }
 
+
     function handleMouseMove(event) {
-    if (isMouseDown) {
-        const x = Math.floor(event.offsetX / 5) * 5;
-        const y = Math.floor(event.offsetY / 5) * 5;
+        if (isMouseDown) {
+            const brushSize = parseInt(document.getElementById('brushSize').value);
+            
+            // Calculate the starting point for the drawing based on the brush size
+            const startX = Math.floor((event.offsetX - brushSize / 2) / 3) * 3;
+            const startY = Math.floor((event.offsetY - brushSize / 2) / 3) * 3;
 
-        // Check if the pixel is within the canvas boundaries
-        if (x >= 0 && x < canvas.width && y >= 0 && y < canvas.height) {
-            const pixel = context.getImageData(x, y, 1, 1).data;
+            // Draw based on the calculated starting point
+            for (let i = 0; i < brushSize; i++) {
+                for (let j = 0; j < brushSize; j++) {
+                    const x = startX + i * 3;
+                    const y = startY + j * 3;
 
-            // Check if the pixel is colored
-            const isColored = pixel[0] !== 255 || pixel[1] !== 255 || pixel[2] !== 255 || pixel[3] !== 0;
+                    // Check if the pixel is within the canvas boundaries
+                    if (x >= 0 && x < canvas.width && y >= 0 && y < canvas.height) {
+                        const pixel = context.getImageData(x, y, 1, 1).data;
 
-            if (isEraserMode && isColored) {
-                // If eraser mode and the pixel is colored, erase it
-                context.clearRect(x, y, 5, 5);
-                // Draw the original background color
-                const color = (x / 5 + y / 5) % 2 === 0 ? '#fff' : '#eee';
-                context.fillStyle = color;
-                context.fillRect(x, y, 5, 5);
-            } else if (!isEraserMode) {
-                // If not eraser mode, draw with the selected color
-                const color = document.getElementById('colorPicker').value;
-                context.fillStyle = color;
-                context.fillRect(x, y, 5, 5);
+                        // Check if the pixel is colored
+                        const isColored = pixel[0] !== 255 || pixel[1] !== 255 || pixel[2] !== 255 || pixel[3] !== 0;
+
+                        if (isEraserMode && isColored) {
+                            // If eraser mode and the pixel is colored, erase it
+                            context.clearRect(x, y, 3, 3);
+                            // Draw the original background color
+                            const color = (x / 3 + y / 3) % 2 === 0 ? '#fff' : '#eee';
+                            context.fillStyle = color;
+                            context.fillRect(x, y, 3, 3);
+                        } else if (!isEraserMode) {
+                            // If not eraser mode, draw with the selected color
+                            const color = document.getElementById('colorPicker').value;
+                            context.fillStyle = color;
+                            context.fillRect(x, y, 3, 3);
+                        }
+                    }
+                }
             }
         }
     }
-}
+
+
 
     function handleMouseUp() {
         isMouseDown = false;
@@ -248,7 +276,7 @@
     // Loop through the pixels in the grid and extract color information
     for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
-            const pixel = context.getImageData(x * 5, y * 5, 1, 1).data;
+            const pixel = context.getImageData(x * 3, y * 3, 1, 1).data;
             pixelArray.push(...pixel);
         }
     }
