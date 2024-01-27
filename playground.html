@@ -51,6 +51,11 @@
                     <label for="artNameInput" class="text-gray-600">Enter art name:</label>
                     <input class="border p-1 rounded mt-2" type="text" id="artNameInput" value="Untitled">
             </div>
+            <div class="flex justify-between mt-2 border rounded p-1">
+                <label class="text-gray-600" for="pixelSize">Pixel Size:</label>
+                <input type="number" id="pixelSize" min="1" value="3" class="border w-20 rounded p-1">
+            </div>
+            
         </div>
         <div class="">
             <div class="rounded p-2 items-center mt-1 border md:mt-0">
@@ -88,6 +93,15 @@
     const deleteBtn = document.getElementById('deleteBtn');
     const brushSizeInput = document.getElementById('brushSize');
     let brushSize = brushSizeInput.value;
+
+    // Add this line to initialize the pixel size
+    let pixelSize = document.getElementById('pixelSize').value;
+
+    // Add an event listener for the pixel size input
+    const pixelSizeInput = document.getElementById('pixelSize');
+    pixelSizeInput.addEventListener('input', () => {
+        pixelSize = pixelSizeInput.value;
+    });
 
     brushSizeInput.addEventListener('input', () => {
         brushSize = brushSizeInput.value;
@@ -131,11 +145,13 @@
                         const artNameInput = document.getElementById('artNameInput');
                         const width = document.getElementById('width'); // Get width
                         const height = document.getElementById('height'); // Get height
+                        const pixelSizeField = document.getElementById('pixelSize');
 
                         artNameInput.value = data[0].artName;
                         width.value = data[0].width ? data[0].width : 200;
                         height.value = data[0].height ? data[0].height : 150;
-                        loadPixelData(data[0].pixels, data[0].width, data[0].height);
+                        pixelSizeField.value = data[0].pixelSize ? data[0].pixelSize : 3;
+                        loadPixelData(data[0].pixels, data[0].width, data[0].height, data[0].pixelSize ? data[0].pixelSize : 3);
                     }
                 })
                 .catch(error => {
@@ -143,27 +159,27 @@
                 });
         }
 
-        function loadPixelData(pixelArray, width, height) {
-            canvas.width = width * 3;
-            canvas.height = height * 3;
+        function loadPixelData(pixelArray, width, height, pixelSize) {
+            canvas.width = width * pixelSize;
+            canvas.height = height * pixelSize;
 
             context.clearRect(0, 0, canvas.width, canvas.height);
 
             // Loop through the pixels and draw them on the canvas
             for (let i = 0; i < pixelArray.length; i += 4) {
-                const x = (i / 4) % width * 3;
-                const y = Math.floor((i / 4) / width) * 3;
+                const x = (i / 4) % width * pixelSize;
+                const y = Math.floor((i / 4) / width) * pixelSize;
                 const color = `rgba(${pixelArray[i]}, ${pixelArray[i + 1]}, ${pixelArray[i + 2]}, ${pixelArray[i + 3] / 255})`;
                 context.fillStyle = color;
-                context.fillRect(x, y, 3, 3);
+                context.fillRect(x, y, pixelSize, pixelSize);
             }
         }
 
     function createGrid() {
         const width = document.getElementById('width').value;
         const height = document.getElementById('height').value;
-        canvas.width = width * 3; // 3 pixels per unit
-        canvas.height = height * 3;
+        canvas.width = width * pixelSize; // 3 pixels per unit
+        canvas.height = height * pixelSize;
 
         context.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -171,7 +187,7 @@
             for (let j = 0; j < height; j++) {
                 const color = (i + j) % 2 === 0 ? '#fff' : '#eee';
                 context.fillStyle = color;
-                context.fillRect(i * 3, j * 3, 3, 3);
+                context.fillRect(i * pixelSize, j * pixelSize, pixelSize, pixelSize);
             }
         }
     }
@@ -187,14 +203,14 @@
             const brushSize = parseInt(document.getElementById('brushSize').value);
             
             // Calculate the starting point for the drawing based on the brush size
-            const startX = Math.floor((event.offsetX - brushSize / 2) / 3) * 3;
-            const startY = Math.floor((event.offsetY - brushSize / 2) / 3) * 3;
+            const startX = Math.floor((event.offsetX - brushSize / 2) / pixelSize) * pixelSize;
+            const startY = Math.floor((event.offsetY - brushSize / 2) / pixelSize) * pixelSize;
 
             // Draw based on the calculated starting point
             for (let i = 0; i < brushSize; i++) {
                 for (let j = 0; j < brushSize; j++) {
-                    const x = startX + i * 3;
-                    const y = startY + j * 3;
+                    const x = startX + i * pixelSize;
+                    const y = startY + j * pixelSize;
 
                     // Check if the pixel is within the canvas boundaries
                     if (x >= 0 && x < canvas.width && y >= 0 && y < canvas.height) {
@@ -205,16 +221,16 @@
 
                         if (isEraserMode && isColored) {
                             // If eraser mode and the pixel is colored, erase it
-                            context.clearRect(x, y, 3, 3);
+                            context.clearRect(x, y, pixelSize, pixelSize);
                             // Draw the original background color
-                            const color = (x / 3 + y / 3) % 2 === 0 ? '#fff' : '#eee';
+                            const color = (x / pixelSize + y / pixelSize) % 2 === 0 ? '#fff' : '#eee';
                             context.fillStyle = color;
-                            context.fillRect(x, y, 3, 3);
+                            context.fillRect(x, y, pixelSize, pixelSize);
                         } else if (!isEraserMode) {
                             // If not eraser mode, draw with the selected color
                             const color = document.getElementById('colorPicker').value;
                             context.fillStyle = color;
-                            context.fillRect(x, y, 3, 3);
+                            context.fillRect(x, y, pixelSize, pixelSize);
                         }
                     }
                 }
@@ -276,7 +292,7 @@
     // Loop through the pixels in the grid and extract color information
     for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
-            const pixel = context.getImageData(x * 3, y * 3, 1, 1).data;
+            const pixel = context.getImageData(x * pixelSize, y * pixelSize, 1, 1).data;
             pixelArray.push(...pixel);
         }
     }
@@ -288,7 +304,7 @@
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ userId, artName, pixels: pixelArray, width, height, artId }), // Include artId
+        body: JSON.stringify({ userId, artName, pixels: pixelArray, width, height, artId, pixelSize }), // Include artId
     })
     .then(response => response.json())
     .then(data => {
